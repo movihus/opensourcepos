@@ -41,10 +41,7 @@ class Specific_customer extends Report
 				$this->lang->line('reports_total'),
 				$this->lang->line('reports_cost'),
 				$this->lang->line('reports_profit'),
-				$this->lang->line('reports_discount')),
-			'details_rewards' => array(
-				$this->lang->line('reports_used'),
-				$this->lang->line('reports_earned'))
+				$this->lang->line('reports_discount'))
 		);
 	}
 
@@ -76,10 +73,6 @@ class Specific_customer extends Report
 			$this->db->from('sales_items_temp');
 			$this->db->where('sale_id', $value['sale_id']);
 			$data['details'][$key] = $this->db->get()->result_array();
-			$this->db->select('used, earned');
-			$this->db->from('sales_reward_points');
-			$this->db->where('sale_id', $value['sale_id']);
-			$data['rewards'][$key] = $this->db->get()->result_array();
 		}
 
 		return $data;

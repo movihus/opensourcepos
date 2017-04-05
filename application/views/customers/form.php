@@ -64,27 +64,7 @@
 				</div>
 			</div>	
 		</div>
-	<?php if($this->config->item('customer_reward_enable') == TRUE): ?>
-		<div class="form-group form-group-sm">
-			<?php echo form_label($this->lang->line('rewards_package'), 'rewards', array('class'=>'control-label col-xs-3')); ?>
-			<div class='col-xs-8'>
-				<?php echo form_dropdown('package_id', $packages, $selected_package, array('class'=>'form-control')); ?>
-			</div>
-		</div>
 
-		<div class="form-group form-group-sm">
-			<?php echo form_label($this->lang->line('customers_available_points'), 'available_points', array('class' => 'control-label col-xs-3')); ?>
-			<div class='col-xs-4'>
-				<?php echo form_input(array(
-						'name'=>'available_points',
-						'id'=>'available_points',
-						'class'=>'form-control input-sm',
-						'value'=>$person_info->points,
-				 		'disabled'=>'')
-						);?>
-			</div>
-		</div>
-	<?php endif; ?>
 		<div class="form-group form-group-sm">
 			<?php echo form_label($this->lang->line('customers_taxable'), 'taxable', array('class' => 'control-label col-xs-3')); ?>
 			<div class='col-xs-1'>
@@ -99,6 +79,21 @@
 //validation and submit handling
 $(document).ready(function()
 {
+	$('#ruc').on('change', function(evt){
+		$.get("<?php echo site_url($controller_name . '/get_client_by_ruc')?>", { ruc: $(this).val() }, function(data){
+			if (data && data.success) {
+				person = data.result[0];
+				$('#dv').val(person.dv);
+				$('#first_name').val(person.first_name);
+				$('#last_name').val(person.last_name);
+
+				var action = $('#customer_form').attr('action');
+				console.debug(person);
+				$('#customer_form').attr('action', action + person.person_id);
+			}
+		}, 'json');
+	});
+
 	$('#customer_form').validate($.extend({
 		submitHandler:function(form)
 		{

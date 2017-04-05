@@ -6,8 +6,10 @@ class Person extends CI_Model
 	*/
 	public function exists($person_id)
 	{
+		var_dump('asdfasd');
 		$this->db->from('people');	
 		$this->db->where('people.person_id', $person_id);
+
 		
 		return ($this->db->get()->num_rows() == 1);
 	}
@@ -76,9 +78,9 @@ class Person extends CI_Model
 	/*
 	Inserts or updates a person
 	*/
-	public function save(&$person_data, $person_id = FALSE)
-	{		
-		if(!$person_id || !$this->exists($person_id))
+	public function save(&$person_data, $person_id = FALSE, $exists = FALSE)
+	{	
+		if(!$person_id || (!$exists && !$this->exists($person_id)))
 		{
 			if($this->db->insert('people', $person_data))
 			{
@@ -143,6 +145,13 @@ class Person extends CI_Model
 	public function delete_list($person_ids)
 	{	
 		return TRUE;	
+ 	}
+
+ 	public function get_person_by_ruc($ruc) {
+ 		$this->db->from('people');
+ 		$this->db->where('ruc', $ruc);
+
+ 		return $this->db->get()->result();
  	}
 }
 ?>

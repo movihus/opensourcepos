@@ -71,13 +71,6 @@ class Customers extends Persons
 		$data['person_info'] = $info;
 
 		$data['total'] = $this->xss_clean($this->Customer->get_totals($customer_id)->total);
-		$packages = array('' => $this->lang->line('items_none'));
-		foreach($this->Customer_rewards->get_all()->result_array() as $row)
-		{
-			$packages[$this->xss_clean($row['package_id'])] = $this->xss_clean($row['package_name']);
-		}
-		$data['packages'] = $packages;
-		$data['selected_package'] = $info->package_id;
 
 		$this->load->view("customers/form", $data);
 	}
@@ -88,6 +81,8 @@ class Customers extends Persons
 	public function save($customer_id = -1)
 	{
 		$person_data = array(
+			'ruc' => $this->input->post('ruc'),
+			'dv' => $this->input->post('dv'),
 			'first_name' => $this->input->post('first_name'),
 			'last_name' => $this->input->post('last_name'),
 			'gender' => $this->input->post('gender'),
@@ -105,7 +100,6 @@ class Customers extends Persons
 			'account_number' => $this->input->post('account_number') == '' ? NULL : $this->input->post('account_number'),
 			'company_name' => $this->input->post('company_name') == '' ? NULL : $this->input->post('company_name'),
 			'discount_percent' => $this->input->post('discount_percent') == '' ? 0.00 : $this->input->post('discount_percent'),
-			'package_id' => $this->input->post('package_id') == '' ? NULL : $this->input->post('package_id'),
 			'taxable' => $this->input->post('taxable') != NULL
 		);
 
@@ -140,6 +134,19 @@ class Customers extends Persons
 		$exists = $this->Customer->account_number_exists($this->input->post('account_number'), $this->input->post('person_id'));
 
 		echo !$exists ? 'true' : 'false';
+	}
+
+	public function get_client_by_ruc()
+	{
+		$person = $this->Customer->get_person_by_ruc($this->input->get('ruc'));
+		$response = array('success' => FALSE, 'result' => array());
+
+		if ($person) {
+			$response['success'] = TRUE;
+			$response['result'] = $person;
+		}
+
+		echo json_encode($response);
 	}
 	
 	/*
@@ -199,24 +206,26 @@ class Customers extends Persons
 					if(sizeof($data) >= 15)
 					{
 						$person_data = array(
-							'first_name'	=> $data[0],
-							'last_name'		=> $data[1],
-							'gender'		=> $data[2],
-							'email'			=> $data[3],
-							'phone_number'	=> $data[4],
-							'address_1'		=> $data[5],
-							'address_2'		=> $data[6],
-							'city'			=> $data[7],
-							'state'			=> $data[8],
-							'zip'			=> $data[9],
-							'country'		=> $data[10],
-							'comments'		=> $data[11]
+							'ruc'			=> $data[0],
+							'dv'			=> $data[1],
+							'first_name'	=> $data[2],
+							'last_name'		=> $data[3],
+							'gender'		=> $data[4],
+							'email'			=> $data[5],
+							'phone_number'	=> $data[6],
+							'address_1'		=> $data[7],
+							'address_2'		=> $data[8],
+							'city'			=> $data[9],
+							'state'			=> $data[10],
+							'zip'			=> $data[11],
+							'country'		=> $data[12],
+							'comments'		=> $data[13]
 						);
 						
 						$customer_data = array(
-							'company_name'		=> $data[12],
-							'discount_percent'	=> $data[14],
-							'taxable'			=> $data[15] == '' ? 0 : 1
+							'company_name'		=> $data[14],
+							'discount_percent'	=> $data[15],
+							'taxable'			=> $data[16] == '' ? 0 : 1
 						);
 						
 						$account_number = $data[13];

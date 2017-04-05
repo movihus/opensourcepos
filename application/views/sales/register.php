@@ -30,18 +30,8 @@ if (isset($success))
 				<li class="pull-left">
 					<?php echo form_dropdown('mode', $modes, $mode, array('onchange'=>"$('#mode_form').submit();", 'class'=>'selectpicker show-menu-arrow', 'data-style'=>'btn-default btn-sm', 'data-width'=>'fit')); ?>
 				</li>
+
 				<?php
-				if($this->config->item('dinner_table_enable') == TRUE)
-				{
-				?>
-					<li class="pull-left first_li">
-						<label class="control-label"><?php echo $this->lang->line('sales_table'); ?></label>
-					</li>
-					<li class="pull-left">
-						<?php echo form_dropdown('dinner_table', $empty_tables, $selected_table,array('onchange'=>"$('#mode_form').submit();", 'class'=>'selectpicker show-menu-arrow', 'data-style'=>'btn-default btn-sm', 'data-width'=>'fit')); ?>
-					</li>
-				<?php
-				}
 				if (count($stock_locations) > 1)
 				{
 				?>
@@ -134,11 +124,11 @@ if (isset($success))
 				{					
 			?>
 					<?php echo form_open($controller_name."/edit_item/$line", array('class'=>'form-horizontal', 'id'=>'cart_'.$line)); ?>
-						<tr>
+						<tr data-line='<?php echo 'cart_'.$line ?>'>
 							<td><?php echo anchor($controller_name."/delete_item/$line", '<span class="glyphicon glyphicon-trash"></span>');?></td>
 							<td><?php echo $item['item_number']; ?></td>
 							<td style="align: center;">
-								<?php echo $item['name']; ?><br /> <?php if($item['stock_type'] == '0'): echo '[' . to_quantity_decimals($item['in_stock']) . ' in ' . $item['stock_name'] . ']'; endif; ?>
+								<?php echo $item['name']; ?><br /> <?php echo '[' . to_quantity_decimals($item['in_stock']) . ' en ' . $item['stock_name'] . ']'; ?>
 								<?php echo form_hidden('location', $item['item_location']); ?>
 							</td>
 
@@ -290,23 +280,6 @@ if (isset($success))
 					<th style='width: 55%;'><?php echo $this->lang->line("sales_customer_discount"); ?></th>
 					<th style="width: 45%; text-align: right;"><?php echo $customer_discount_percent . ' %'; ?></th>
 				</tr>
-				<?php if($this->config->item('customer_reward_enable') == TRUE): ?>
-				<?php
-				if(!empty($customer_rewards) &&  isset($customer_rewards))
-				{
-				?>
-					<tr>
-						<th style='width: 55%;'><?php echo $this->lang->line("rewards_package"); ?></th>
-						<th style="width: 45%; text-align: right;"><?php echo $customer_rewards['package_name']; ?></th>
-					</tr>
-					<tr>
-						<th style='width: 55%;'><?php echo $this->lang->line("customers_available_points"); ?></th>
-						<th style="width: 45%; text-align: right;"><?php echo $customer_rewards['points']; ?></th>
-					</tr>
-				<?php
-				}
-				?>
-				<?php endif; ?>
 				<tr>
 					<th style='width: 55%;'><?php echo $this->lang->line("sales_customer_total"); ?></th>
 					<th style="width: 45%; text-align: right;"><?php echo to_currency($customer_total); ?></th>
@@ -325,7 +298,7 @@ if (isset($success))
 					<label id="customer_label" for="customer" class="control-label" style="margin-bottom: 1em; margin-top: -1em;"><?php echo $this->lang->line('sales_select_customer'); ?></label>
 					<?php echo form_input(array('name'=>'customer', 'id'=>'customer', 'class'=>'form-control input-sm', 'value'=>$this->lang->line('sales_start_typing_customer_name')));?>
 
-					<button class='btn btn-info btn-sm modal-dlg' data-btn-submit='<?php echo $this->lang->line('common_submit') ?>' data-href='<?php echo site_url("customers/view"); ?>'
+					<button id="new_customer" class='btn btn-info btn-sm modal-dlg' data-btn-submit='<?php echo $this->lang->line('common_submit') ?>' data-href='<?php echo site_url("customers/view"); ?>'
 							title='<?php echo $this->lang->line($controller_name. '_new_customer'); ?>'>
 						<span class="glyphicon glyphicon-user">&nbsp</span><?php echo $this->lang->line($controller_name. '_new_customer'); ?>
 					</button>
@@ -398,16 +371,9 @@ if (isset($success))
 							</tr>
 						</table>
 					<?php echo form_close(); ?>
-	   					<?php
-	    				// Only show this part if the payment cover the total and in sale or return mode
-		    			if ($sales_or_return_mode == '1')
-			    		{
-				    	?>
-  						<div class='btn btn-sm btn-success pull-right' id='finish_sale_button' tabindex='<?php echo ++$tabindex; ?>'><span class="glyphicon glyphicon-ok">&nbsp</span><?php echo $this->lang->line('sales_complete_sale'); ?></div>
-						<?php
-    					}
-	   					?>
- 				<?php
+
+					<div class='btn btn-sm btn-success pull-right' id='finish_sale_button' tabindex='<?php echo ++$tabindex; ?>'><span class="glyphicon glyphicon-ok">&nbsp</span><?php echo $this->lang->line('sales_complete_sale'); ?></div>
+				<?php
 				}
 				else
 				{
@@ -471,15 +437,6 @@ if (isset($success))
 			<?php echo form_open($controller_name."/cancel", array('id'=>'buttons_form')); ?>
 				<div class="form-group" id="buttons_sale">
 					<div class='btn btn-sm btn-default pull-left' id='suspend_sale_button'><span class="glyphicon glyphicon-align-justify">&nbsp</span><?php echo $this->lang->line('sales_suspend_sale'); ?></div>
-					<?php
-					// Only show this part if the payment cover the total
-					if ($quote_or_invoice_mode && isset($customer))
-					{
-					?>
-					<div class='btn btn-sm btn-success' id='finish_invoice_quote_button'><span class="glyphicon glyphicon-ok">&nbsp</span><?php echo $mode_label; ?></div>
-					<?php
-					}
-					?>
 
 					<div class='btn btn-sm btn-danger pull-right' id='cancel_sale_button'><span class="glyphicon glyphicon-remove">&nbsp</span><?php echo $this->lang->line('sales_cancel_sale'); ?></div>
 				</div>
@@ -487,10 +444,10 @@ if (isset($success))
 
 
 			<?php
-			// Only show this part if the payment cover the total
-			if($payments_cover_total || $quote_or_invoice_mode)
-			{
-			?>
+				// Only show this part if the payment cover the total
+				if($payments_cover_total)
+				{
+				?>
 				<div class="container-fluid">
 					<div class="no-gutter row">
 						<div class="form-group form-group-sm">
@@ -526,12 +483,11 @@ if (isset($success))
 						</div>
 					</div>
 				<?php
-				if (($mode == "sale") && $this->config->item('invoice_enable') == TRUE)
+				if ($mode == "sale" && $this->config->item('invoice_enable') == TRUE)
 				{
 				?>
 					<div class="row">
 						<div class="form-group form-group-sm">
-
 							<div class="col-xs-6">
 								<label class="control-label checkbox" for="sales_invoice_enable">
 									<?php echo form_checkbox(array('name'=>'sales_invoice_enable', 'id'=>'sales_invoice_enable', 'value'=>1, 'checked'=>$invoice_number_enabled)); ?>
@@ -563,6 +519,21 @@ if (isset($success))
 <script type="text/javascript">
 $(document).ready(function()
 {
+	$('input[name="quantity"]').on('change', function(evt){
+		var line = $(this).parent().parent().data('line');
+		javascript:document.getElementById(line).submit();
+	});
+
+	$('input[name="price"]').on('change', function(evt){
+		var line = $(this).parent().parent().data('line');
+		javascript:document.getElementById(line).submit();
+	});
+
+	$('input[name="discount"]').on('change', function(evt){
+		var line = $(this).parent().parent().data('line');
+		javascript:document.getElementById(line).submit();
+	});
+
     $("#item").autocomplete(
 	{
 		source: '<?php echo site_url($controller_name."/item_search"); ?>',
@@ -663,17 +634,11 @@ $(document).ready(function()
 	
     $("#finish_sale_button").click(function()
     {
-		$('#buttons_form').attr('action', '<?php echo site_url($controller_name."/complete_receipt"); ?>');
+		$('#buttons_form').attr('action', '<?php echo site_url($controller_name."/complete"); ?>');
 		$('#buttons_form').submit();
     });
 
-    $("#finish_invoice_quote_button").click(function()
-    {
-        $('#buttons_form').attr('action', '<?php echo site_url($controller_name."/complete"); ?>');
-        $('#buttons_form').submit();
-    });
-
-    $("#suspend_sale_button").click(function()
+	$("#suspend_sale_button").click(function()
 	{ 	
 		$('#buttons_form').attr('action', '<?php echo site_url($controller_name."/suspend"); ?>');
 		$('#buttons_form').submit();
@@ -745,11 +710,6 @@ $(document).ready(function()
 			}
 		}
 	}
-
-	$('[name="price"],[name="quantity"],[name="discount"],[name="description"],[name="serialnumber"]').focusout(function() {
-		$(this).parents("tr").prevAll("form:first").submit()
-	});
-	
 });
 
 function check_payment_type_giftcard()

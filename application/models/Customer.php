@@ -123,8 +123,16 @@ class Customer extends Person
 
 		//Run these queries as a transaction, we want to make sure we do all or nothing
 		$this->db->trans_start();
+
+		if ($customer_id) {
+			$this->db->from('people');	
+			$this->db->where('people.person_id', $customer_id);
+
+			$parent_exists = ($this->db->get()->num_rows() == 1);
+			$person_data['person_id'] = $customer_id;
+		}
 		
-		if(parent::save($person_data, $customer_id))
+		if(parent::save($person_data, $customer_id, $parent_exists))
 		{
 			if(!$customer_id || !$this->exists($customer_id))
 			{
@@ -132,7 +140,7 @@ class Customer extends Person
 				$success = $this->db->insert('customers', $customer_data);
 			}
 			else
-			{
+			{				
 				$this->db->where('person_id', $customer_id);
 				$success = $this->db->update('customers', $customer_data);
 			}
@@ -145,16 +153,6 @@ class Customer extends Person
 		return $success;
 	}
 	
-	/*
-	Updates reward points value
-	*/
-	public function update_reward_points_value($customer_id, $value)
-	{
-		$this->db->where('person_id', $customer_id);
-		$this->db->update('customers', array('points' => $value));
-	} 
-
-
 	/*
 	Deletes one customer
 	*/
@@ -187,6 +185,7 @@ class Customer extends Person
 		$this->db->group_start();		
 			$this->db->like('first_name', $search);
 			$this->db->or_like('last_name', $search); 
+			$this->db->or_like('ruc', $search); 
 			$this->db->or_like('CONCAT(first_name, " ", last_name)', $search);
 		$this->db->group_end();
 		$this->db->where('deleted', 0);

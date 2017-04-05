@@ -16,6 +16,7 @@ $lang["common_edit"] = "editar";
 $lang["common_email"] = "Email";
 $lang["common_email_invalid_format"] = "El email no está en el formato requerido";
 $lang["common_fields_required_message"] = "Los campos en rojo son requeridos";
+$lang["common_ruc"] = "RUC";
 $lang["common_first_name"] = "Nombre";
 $lang["common_first_name_required"] = "Nombre es un campo requerido";
 $lang["common_first_page"] = "Primera";
